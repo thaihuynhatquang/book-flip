@@ -151,8 +151,10 @@ export default {
 
 <style>
 .flipbook {
-  width: 90vw;
-  height: calc(100vh - 50px - 40px);
+  width: 100%;
+  height: 90vh;
+  display: flex;
+  flex-direction: column-reverse;
 }
 
 .flipbook .bounding-box {
