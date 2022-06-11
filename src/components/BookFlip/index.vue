@@ -30,7 +30,7 @@
           @click="flipRight"
         />
         <div :style="{ transform: `translateX(${centerOffsetSmoothed}px)` }">
-          <img
+          <div
             class="page fixed"
             :style="{
               width: pageWidth + 'px',
@@ -38,11 +38,21 @@
               left: xMargin + 'px',
               top: yMargin + 'px',
             }"
-            :src="pageUrlLoading(leftPage, true)"
-            v-if="showLeftPage"
-            @load="didLoadImage($event)"
-          />
-          <img
+          >
+            <bookmark-plus-icon
+              v-if="showLeftPage"
+              :size="30"
+              class="btn add-left-image-to-print"
+              @click="addImageToPrint(leftPage)"
+              title="Add image to print"
+            />
+            <img
+              :src="pageUrlLoading(leftPage, true)"
+              v-if="showLeftPage"
+              @load="didLoadImage($event)"
+            />
+          </div>
+          <div
             class="page fixed"
             :style="{
               width: pageWidth + 'px',
@@ -50,10 +60,20 @@
               left: viewWidth / 2 + 'px',
               top: yMargin + 'px',
             }"
-            v-if="showRightPage"
-            :src="pageUrlLoading(rightPage, true)"
-            @load="didLoadImage($event)"
-          />
+          >
+            <bookmark-plus-icon
+              v-if="showRightPage"
+              :size="30"
+              class="btn add-right-image-to-print"
+              @click="addImageToPrint(rightPage)"
+              title="Add image to print"
+            />
+            <img
+              v-if="showRightPage"
+              :src="pageUrlLoading(rightPage, true)"
+              @load="didLoadImage($event)"
+            />
+          </div>
 
           <div :style="{ opacity: flip.opacity }">
             <div
@@ -105,11 +125,13 @@
           class="btn page-first"
           :class="{ disabled: !canFlipLeft }"
           @click="onGoToFirstPage"
+          title="Go to first page"
         />
         <left-icon
           class="btn left"
           :class="{ disabled: !canFlipLeft }"
           @click="flipLeft"
+          title="Flip left"
         />
         <div class="page-num">
           <span>
@@ -130,11 +152,13 @@
           class="btn right"
           :class="{ disabled: !canFlipRight }"
           @click="flipRight"
+          title="Flip right"
         />
         <page-last-icon
           class="btn page-last"
           :class="{ disabled: !canFlipRight }"
           @click="onGoToLastPage"
+          title="Go to last page"
         />
       </div>
     </div>
@@ -146,6 +170,7 @@ import LeftIcon from "vue-material-design-icons/ChevronLeft";
 import RightIcon from "vue-material-design-icons/ChevronRight";
 import PageFirstIcon from "vue-material-design-icons/PageFirst";
 import PageLastIcon from "vue-material-design-icons/PageLast";
+import BookmarkPlusIcon from "vue-material-design-icons/BookmarkPlusOutline";
 
 var IE, easeIn, easeInOut, easeOut;
 import Matrix from "./matrix";
@@ -175,6 +200,7 @@ export default {
     RightIcon,
     PageFirstIcon,
     PageLastIcon,
+    BookmarkPlusIcon,
   },
   props: {
     pages: {
@@ -1231,13 +1257,19 @@ export default {
       }
     },
     onGoToFirstPage: function () {
-      this.$emit("set-url-from-page", 1, true);
+      this.$emit("set-url-from-page", 1);
+      this.goToPage(1);
     },
     onGoToLastPage: function () {
-      this.$emit("set-url-from-page", this.pages.length - 1, true);
+      this.$emit("set-url-from-page", this.pages.length - 1);
+      this.goToPage(this.pages.length - 1);
     },
     onGoToPage: function (page) {
-      this.$emit("set-url-from-page", page, true);
+      this.goToPage(parseInt(page));
+      this.$emit("set-url-from-page", page);
+    },
+    addImageToPrint: function (page) {
+      this.$emit("add-image-to-print", page);
     },
   },
   watch: {
@@ -1380,31 +1412,8 @@ export default {
   align-items: center;
 }
 
-.action-bar .btn {
-  font-size: 30px;
-  color: #666;
-}
-
-.action-bar .btn svg {
-  bottom: 0;
-}
-
 .action-bar .btn:not(:first-child) {
   margin-left: 10px;
-}
-
-.has-mouse .action-bar .btn:hover {
-  filter: drop-shadow(1px 1px 5px #000);
-  cursor: pointer;
-}
-
-.action-bar .btn:active {
-  filter: none !important;
-}
-
-.action-bar .btn.disabled {
-  color: #999;
-  pointer-events: none;
 }
 
 .action-bar .page-num {
@@ -1415,5 +1424,14 @@ export default {
 .action-bar .page-num input {
   width: 30px;
   text-align: center;
+}
+
+.add-left-image-to-print {
+  position: absolute;
+  left: -50px;
+}
+.add-right-image-to-print {
+  position: absolute;
+  right: -50px;
 }
 </style>
