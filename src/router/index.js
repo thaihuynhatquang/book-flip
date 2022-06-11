@@ -1,6 +1,6 @@
 import Vue from "vue";
 import Router from "vue-router";
-import Flipbook from "@/components/Flipbook/index.vue";
+import App from "@/App.vue";
 
 Vue.use(Router);
 
@@ -10,7 +10,7 @@ export default new Router({
     {
       path: "/",
       name: "Flipbook",
-      component: Flipbook
+      component: App
     }
   ]
 });
