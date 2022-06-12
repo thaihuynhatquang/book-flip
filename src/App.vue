@@ -9,6 +9,12 @@
       @add-image-to-print="addImageToPrint"
       :zooms="[1, 2]"
     >
+      <template v-slot:action-bar-bottom>
+        <div class="action-bar-bottom">
+          <button class="action-bar-button" >Print</button>
+          <button class="action-bar-button" >Download</button>
+        </div>
+      </template>
     </flip-book>
     <modal name="preview-images" height="auto" :scrollable="true">
       <close-icon
@@ -52,6 +58,7 @@
 import FlipBook from "./components/BookFlip/index.vue";
 import CloseIcon from "vue-material-design-icons/Close";
 import DeleteIcon from "vue-material-design-icons/Delete";
+import printJS from "print-js";
 
 export default {
   name: "BookFlip",
@@ -64,16 +71,18 @@ export default {
     return {
       pages: [
         null,
-        "https://i.picsum.photos/id/413/400/600.jpg?hmac=y8FsPsjNs7PwaRawnYVp3wQg6evThVMvWMe8PiMImRo",
-        "https://i.picsum.photos/id/1051/400/600.jpg?hmac=fc0_O5Vd0-b-_dNtfWxrKR8xVdqqmlBA4wHeQToox_4",
-        "https://i.picsum.photos/id/423/400/600.jpg?hmac=3Y1_CVw8GammIaogm2JuZ4kIXmU0iKmeKPM3qXht7gE",
-        "https://i.picsum.photos/id/239/400/600.jpg?hmac=iPhV3gDG_Tz6FjDLoIbZcW2Soc4DJNbfnlhWdIIHU3w",
-        "https://i.picsum.photos/id/1035/400/600.jpg?hmac=hKKJgB92gXvDhCLyQtOO6iWGwpe50KYuIZkQRlQSmc0",
-        "https://i.picsum.photos/id/85/400/600.jpg?hmac=OyOgWPfwv7Gsff0ywLmvJbHPtxmj8_ZAo8JGx8DV0Ao",
-        "https://i.picsum.photos/id/757/400/600.jpg?hmac=zMttZXcr0ZGlxwLL0MzI-v-VsbiDgoEtFYA27PShT0c",
-        "https://i.picsum.photos/id/336/400/600.jpg?hmac=D5OuITGaWwYrz5bKiBYX6PvqP3NVmFdCMsahfpI9xQ8",
-        "https://i.picsum.photos/id/1072/400/600.jpg?hmac=-v-dfM2RzyVbA9uiSXKeECIoi1Ps6YLLNgkfULQ5vOA",
-        "https://i.picsum.photos/id/868/400/600.jpg?hmac=rYpPl-LSTq6HiOV03M4zHXYTGU5pWSb8DhS84E-hKMM",
+        "http://samsung.aiibook.net/vn/catImage/53/001.jpg",
+        "http://samsung.aiibook.net/vn/catImage/53/002.jpg",
+        "http://samsung.aiibook.net/vn/catImage/53/003.jpg",
+        "http://samsung.aiibook.net/vn/catImage/53/004.jpg",
+        "http://samsung.aiibook.net/vn/catImage/53/005.jpg",
+        "http://samsung.aiibook.net/vn/catImage/53/006.jpg",
+        "http://samsung.aiibook.net/vn/catImage/53/007.jpg",
+        "http://samsung.aiibook.net/vn/catImage/53/008.jpg",
+        "http://samsung.aiibook.net/vn/catImage/53/009.jpg",
+        "http://samsung.aiibook.net/vn/catImage/53/010.jpg",
+        "http://samsung.aiibook.net/vn/catImage/53/011.jpg",
+        "http://samsung.aiibook.net/vn/catImage/53/s040.jpg",
       ],
       pageNum: null,
       hasMouse: true,
@@ -132,18 +141,16 @@ export default {
       );
     },
     printImages: function () {
-      console.log("HJIHIHI");
+      printJS({
+        printable: this.imagesToPrint.map((image) => image.src),
+        type: "image",
+        imageStyle: "width:auto; height: 95vh",
+      });
     },
   },
   mounted: function () {
     window.addEventListener("hashchange", this.setPageFromUrl);
     return this.setPageFromUrl();
-  },
-  watch: {
-    imagesToPrint: function (newValue) {
-      console.log(newValue);
-      this.$modal.show("preview-images");
-    },
   },
 };
 </script>
@@ -154,10 +161,12 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
+  margin: 20px 0 20px 0;
+  height: 80vh;
 }
 .flipbook {
   width: 100%;
-  height: 90vh;
+  height: 100%;
   align-items: center;
 }
 
@@ -178,10 +187,6 @@ export default {
 
 .btn svg {
   bottom: 0;
-}
-
-.action-bar .btn:not(:first-child) {
-  margin-left: 10px;
 }
 
 .btn:hover {
@@ -250,7 +255,7 @@ export default {
   align-items: center;
   justify-content: center;
   margin-top: 10px;
-  font-size: 12px;
+  font-size: 15px;
 }
 
 .btn-print {
@@ -260,7 +265,7 @@ export default {
   cursor: pointer;
   color: #000000;
   margin: 0 10px 10px 0;
-  font-size: 12px;
+  font-size: 15px;
 }
 
 .btn-print:disabled {

@@ -1,5 +1,47 @@
 <template>
   <div>
+    <div class="action-bar-top">
+      <page-first-icon
+        class="btn page-first"
+        :class="{ disabled: !canFlipLeft }"
+        @click="onGoToFirstPage"
+        title="Go to first page"
+      />
+      <left-icon
+        class="btn left"
+        :class="{ disabled: !canFlipLeft }"
+        @click="flipLeft"
+        title="Flip left"
+      />
+      <div class="page-num">
+        <span>
+          Page
+          <input
+            :style="{ fontSize: '15px' }"
+            ref="input"
+            type="number"
+            :value="page"
+            :min="1"
+            :max="pages.length - 1"
+            @keypress.enter="(event) => onGoToPage(event.target.value)"
+          />
+          of {{ numPages }}
+        </span>
+      </div>
+
+      <right-icon
+        class="btn right"
+        :class="{ disabled: !canFlipRight }"
+        @click="flipRight"
+        title="Flip right"
+      />
+      <page-last-icon
+        class="btn page-last"
+        :class="{ disabled: !canFlipRight }"
+        @click="onGoToLastPage"
+        title="Go to last page"
+      />
+    </div>
     <div
       class="viewport"
       ref="viewport"
@@ -19,149 +61,113 @@
       @wheel="onWheel"
     >
       <div class="flipbook-container" :style="{ transform: `scale(${zoom})` }">
-        <div
-          class="click-to-flip left"
-          :style="{ cursor: canFlipLeft ? 'pointer' : 'auto' }"
-          @click="flipLeft"
-        />
-        <div
-          class="click-to-flip right"
-          :style="{ cursor: canFlipRight ? 'pointer' : 'auto' }"
-          @click="flipRight"
-        />
-        <div :style="{ transform: `translateX(${centerOffsetSmoothed}px)` }">
+        <div :style="{ height: '100%' }">
           <div
-            class="page fixed"
-            :style="{
-              width: pageWidth + 'px',
-              height: pageHeight + 'px',
-              left: xMargin + 'px',
-              top: yMargin + 'px',
-            }"
-          >
-            <bookmark-plus-icon
-              v-if="showLeftPage"
-              :size="30"
-              class="btn add-left-image-to-print"
-              @click="addImageToPrint(leftPage)"
-              title="Add image to print"
-            />
-            <img
-              :src="pageUrlLoading(leftPage, true)"
-              v-if="showLeftPage"
-              @load="didLoadImage($event)"
-            />
-          </div>
+            class="click-to-flip left"
+            :style="{ cursor: canFlipLeft ? 'pointer' : 'auto' }"
+            @click="flipLeft"
+          />
           <div
-            class="page fixed"
-            :style="{
-              width: pageWidth + 'px',
-              height: pageHeight + 'px',
-              left: viewWidth / 2 + 'px',
-              top: yMargin + 'px',
-            }"
-          >
-            <bookmark-plus-icon
-              v-if="showRightPage"
-              :size="30"
-              class="btn add-right-image-to-print"
-              @click="addImageToPrint(rightPage)"
-              title="Add image to print"
-            />
-            <img
-              v-if="showRightPage"
-              :src="pageUrlLoading(rightPage, true)"
-              @load="didLoadImage($event)"
-            />
-          </div>
-
-          <div :style="{ opacity: flip.opacity }">
+            class="click-to-flip right"
+            :style="{ cursor: canFlipRight ? 'pointer' : 'auto' }"
+            @click="flipRight"
+          />
+          <div :style="{ transform: `translateX(${centerOffsetSmoothed}px)` }">
             <div
-              v-for="[
-                key,
-                bgImage,
-                lighting,
-                bgPos,
-                transform,
-                z,
-              ] in polygonArray"
-              class="polygon"
-              :key="key"
-              :class="{ blank: !bgImage }"
+              class="page fixed"
               :style="{
-                backgroundImage: bgImage && `url(${loadImage(bgImage)})`,
-                backgroundSize: polygonBgSize,
-                backgroundPosition: bgPos,
-                width: polygonWidth,
-                height: polygonHeight,
-                transform: transform,
-                zIndex: z,
+                width: pageWidth + 'px',
+                height: pageHeight + 'px',
+                left: xMargin + 'px',
+                top: yMargin + 'px',
               }"
             >
-              <div
-                class="lighting"
-                v-show="lighting.length"
-                :style="{ backgroundImage: lighting }"
+              <bookmark-plus-icon
+                v-if="showLeftPage"
+                :size="30"
+                class="btn add-left-image-to-print"
+                @click="addImageToPrint(leftPage)"
+                title="Add image to print"
+              />
+              <img
+                :style="{ width: pageWidth + 'px' }"
+                :src="pageUrlLoading(leftPage, true)"
+                v-if="showLeftPage"
+                @load="didLoadImage($event)"
               />
             </div>
-          </div>
-          <div
-            class="bounding-box"
-            :style="{
-              left: boundingLeft + 'px',
-              top: yMargin + 'px',
-              width: boundingRight - boundingLeft + 'px',
-              height: pageHeight + 'px',
-              cursor: cursor,
-            }"
-            @touchstart="onTouchStart"
-            @pointerdown="onPointerDown"
-            @mousedown="onMouseDown"
-          />
-        </div>
-      </div>
-      <div class="action-bar">
-        <page-first-icon
-          class="btn page-first"
-          :class="{ disabled: !canFlipLeft }"
-          @click="onGoToFirstPage"
-          title="Go to first page"
-        />
-        <left-icon
-          class="btn left"
-          :class="{ disabled: !canFlipLeft }"
-          @click="flipLeft"
-          title="Flip left"
-        />
-        <div class="page-num">
-          <span>
-            Page
-            <input
-              ref="input"
-              type="number"
-              :value="page"
-              :min="1"
-              :max="pages.length - 1"
-              @keypress.enter="(event) => onGoToPage(event.target.value)"
-            />
-            of {{ numPages }}
-          </span>
-        </div>
+            <div
+              class="page fixed"
+              :style="{
+                width: pageWidth + 'px',
+                height: pageHeight + 'px',
+                left: viewWidth / 2 + 'px',
+                top: yMargin + 'px',
+              }"
+            >
+              <bookmark-plus-icon
+                v-if="showRightPage"
+                :size="30"
+                class="btn add-right-image-to-print"
+                @click="addImageToPrint(rightPage)"
+                title="Add image to print"
+              />
+              <img
+                :style="{ width: pageWidth + 'px' }"
+                v-if="showRightPage"
+                :src="pageUrlLoading(rightPage, true)"
+                @load="didLoadImage($event)"
+              />
+            </div>
 
-        <right-icon
-          class="btn right"
-          :class="{ disabled: !canFlipRight }"
-          @click="flipRight"
-          title="Flip right"
-        />
-        <page-last-icon
-          class="btn page-last"
-          :class="{ disabled: !canFlipRight }"
-          @click="onGoToLastPage"
-          title="Go to last page"
-        />
+            <div :style="{ opacity: flip.opacity }">
+              <div
+                v-for="[
+                  key,
+                  bgImage,
+                  lighting,
+                  bgPos,
+                  transform,
+                  z,
+                ] in polygonArray"
+                class="polygon"
+                :key="key"
+                :class="{ blank: !bgImage }"
+                :style="{
+                  backgroundImage: bgImage && `url(${loadImage(bgImage)})`,
+                  backgroundSize: polygonBgSize,
+                  backgroundPosition: bgPos,
+                  width: polygonWidth,
+                  height: polygonHeight,
+                  transform: transform,
+                  zIndex: z,
+                }"
+              >
+                <div
+                  class="lighting"
+                  v-show="lighting.length"
+                  :style="{ backgroundImage: lighting }"
+                />
+              </div>
+            </div>
+            <div
+              class="bounding-box"
+              :style="{
+                left: boundingLeft + 'px',
+                top: yMargin + 'px',
+                width: boundingRight - boundingLeft + 'px',
+                height: pageHeight + 'px',
+                cursor: cursor,
+              }"
+              @touchstart="onTouchStart"
+              @pointerdown="onPointerDown"
+              @mousedown="onMouseDown"
+            />
+          </div>
+        </div>
       </div>
     </div>
+    <div class="action-bar-top"><slot name="action-bar-bottom"></slot></div>
   </div>
 </template>
 
@@ -361,7 +367,8 @@ export default {
     canGoForward: function () {
       return (
         !this.flip.direction &&
-        this.currentPage < this.pages.length - this.displayedPages
+        (this.currentPage < this.pages.length - this.displayedPages ||
+          this.currentPage === this.pages.length - 2)
       );
     },
     canGoBack: function () {
@@ -887,7 +894,11 @@ export default {
             if (this.flip.direction !== this.forwardDirection) {
               this.currentPage -= this.displayedPages;
             } else {
-              this.currentPage += this.displayedPages;
+              if (this.currentPage !== this.pages.length - 2) {
+                this.currentPage += this.displayedPages;
+              } else {
+                this.currentPage += 1;
+              }
             }
             this.$emit(`flip-${this.flip.direction}-end`, this.page);
             this.$emit("set-url-from-page", this.page);
@@ -1265,8 +1276,18 @@ export default {
       this.goToPage(this.pages.length - 1);
     },
     onGoToPage: function (page) {
-      this.goToPage(parseInt(page));
-      this.$emit("set-url-from-page", page);
+      if (!page) {
+        return;
+      } else if (parseInt(page) < 1) {
+        this.goToPage(1);
+        this.$emit("set-url-from-page", 1);
+      } else if (parseInt(page) > this.pages.length - 1) {
+        this.goToPage(this.pages.length - 1);
+        this.$emit("set-url-from-page", this.pages.length - 1);
+      } else {
+        this.goToPage(parseInt(page));
+        this.$emit("set-url-from-page", page);
+      }
     },
     addImageToPrint: function (page) {
       this.$emit("add-image-to-print", page);
@@ -1274,8 +1295,13 @@ export default {
   },
   watch: {
     currentPage: function () {
-      this.firstPage = this.currentPage;
-      this.secondPage = this.currentPage + 1;
+      if (this.currentPage % 2 === 0) {
+        this.firstPage = this.currentPage;
+        this.secondPage = this.currentPage + 1;
+      } else {
+        this.firstPage = this.currentPage - 1;
+        this.secondPage = this.currentPage;
+      }
       return this.preloadImages();
     },
     centerOffset: function () {
@@ -1403,7 +1429,8 @@ export default {
   height: 100%;
 }
 
-.action-bar {
+.action-bar-top,
+.action-bar-bottom {
   width: 100%;
   height: 30px;
   padding: 10px 0;
@@ -1412,17 +1439,17 @@ export default {
   align-items: center;
 }
 
-.action-bar .btn:not(:first-child) {
+.action-bar-top .btn:not(:first-child) {
   margin-left: 10px;
 }
 
-.action-bar .page-num {
-  font-size: 12px;
+.action-bar-top .page-num {
+  font-size: 15px;
   margin-left: 10px;
 }
 
-.action-bar .page-num input {
-  width: 30px;
+.action-bar-top .page-num input {
+  width: 40px;
   text-align: center;
 }
 
