@@ -4,17 +4,13 @@
       class="flipbook"
       :pages="pages"
       :startPage="pageNum"
+      :selectedPages="imagesToPrint"
       @set-url-from-page="setUrlFromPage"
       @set-page-from-url="setPageFromUrl"
       @add-image-to-print="addImageToPrint"
+      @view-images-to-print="viewImagesToPrint"
       :zooms="[1, 2]"
     >
-      <template v-slot:action-bar-bottom>
-        <div class="action-bar-bottom">
-          <button class="action-bar-button" >Print</button>
-          <button class="action-bar-button" >Download</button>
-        </div>
-      </template>
     </flip-book>
     <modal name="preview-images" height="auto" :scrollable="true">
       <close-icon
@@ -122,6 +118,9 @@ export default {
         }
       }
     },
+    viewImagesToPrint: function () {
+      this.$modal.show("preview-images");
+    },
     addImageToPrint: function (page) {
       if (
         !this.imagesToPrint.find(
@@ -163,6 +162,7 @@ export default {
   text-align: center;
   margin: 20px 0 20px 0;
   height: 80vh;
+  width: 100%;
 }
 .flipbook {
   width: 100%;

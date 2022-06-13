@@ -1,47 +1,5 @@
 <template>
   <div>
-    <div class="action-bar-top">
-      <page-first-icon
-        class="btn page-first"
-        :class="{ disabled: !canFlipLeft }"
-        @click="onGoToFirstPage"
-        title="Go to first page"
-      />
-      <left-icon
-        class="btn left"
-        :class="{ disabled: !canFlipLeft }"
-        @click="flipLeft"
-        title="Flip left"
-      />
-      <div class="page-num">
-        <span>
-          Page
-          <input
-            :style="{ fontSize: '15px' }"
-            ref="input"
-            type="number"
-            :value="page"
-            :min="1"
-            :max="pages.length - 1"
-            @keypress.enter="(event) => onGoToPage(event.target.value)"
-          />
-          of {{ numPages }}
-        </span>
-      </div>
-
-      <right-icon
-        class="btn right"
-        :class="{ disabled: !canFlipRight }"
-        @click="flipRight"
-        title="Flip right"
-      />
-      <page-last-icon
-        class="btn page-last"
-        :class="{ disabled: !canFlipRight }"
-        @click="onGoToLastPage"
-        title="Go to last page"
-      />
-    </div>
     <div
       class="viewport"
       ref="viewport"
@@ -74,6 +32,7 @@
           />
           <div :style="{ transform: `translateX(${centerOffsetSmoothed}px)` }">
             <div
+              v-if="showLeftPage"
               class="page fixed"
               :style="{
                 width: pageWidth + 'px',
@@ -82,21 +41,33 @@
                 top: yMargin + 'px',
               }"
             >
-              <bookmark-plus-icon
-                v-if="showLeftPage"
-                :size="30"
+              <star-plus-icon
+                v-if="
+                  !selectedPages.find(
+                    (image) => image.pageNum.toString() === leftPage.toString()
+                  )
+                "
+                :size="45"
                 class="btn add-left-image-to-print"
                 @click="addImageToPrint(leftPage)"
                 title="Add image to print"
               />
+              <star-check-icon
+                v-else
+                :size="45"
+                class="btn add-left-image-to-print"
+                @click="addImageToPrint(leftPage)"
+                title="View images to print"
+              />
+
               <img
                 :style="{ width: pageWidth + 'px' }"
                 :src="pageUrlLoading(leftPage, true)"
-                v-if="showLeftPage"
                 @load="didLoadImage($event)"
               />
             </div>
             <div
+              v-if="showRightPage"
               class="page fixed"
               :style="{
                 width: pageWidth + 'px',
@@ -105,16 +76,51 @@
                 top: yMargin + 'px',
               }"
             >
-              <bookmark-plus-icon
-                v-if="showRightPage"
-                :size="30"
+              <star-plus-icon
+                v-if="
+                  !selectedPages.find(
+                    (image) => image.pageNum.toString() === rightPage.toString()
+                  )
+                "
+                :size="45"
                 class="btn add-right-image-to-print"
                 @click="addImageToPrint(rightPage)"
                 title="Add image to print"
               />
+              <star-check-icon
+                v-else
+                :size="45"
+                class="btn add-right-image-to-print"
+                @click="addImageToPrint(rightPage)"
+                title="View images to print"
+              />
+              <printer-icon
+                :size="45"
+                class="btn btn-print-images"
+                @click="viewImagesToPrint"
+                title="Print Images"
+              />
+              <share-variant-icon
+                :size="45"
+                class="btn btn-copy-link"
+                @click="copyUrl"
+                title="Copy URL"
+              />
+              <img
+                class="btn btn-share-facebook"
+                src="https://i.imgur.com/AsWdjZ5.png"
+                :height="45"
+                @click="shareFacebook"
+              />
+              <!-- <img
+                  class="btn btn-share-zalo"
+                  src="../../assets/zalo.png"
+                  :height="45"
+                  @click="shareFacebook"
+                /> -->
+
               <img
                 :style="{ width: pageWidth + 'px' }"
-                v-if="showRightPage"
                 :src="pageUrlLoading(rightPage, true)"
                 @load="didLoadImage($event)"
               />
@@ -167,7 +173,48 @@
         </div>
       </div>
     </div>
-    <div class="action-bar-top"><slot name="action-bar-bottom"></slot></div>
+    <div class="action-bar">
+      <page-first-icon
+        class="btn page-first"
+        :class="{ disabled: !canFlipLeft }"
+        @click="onGoToFirstPage"
+        title="Go to first page"
+      />
+      <left-icon
+        class="btn left"
+        :class="{ disabled: !canFlipLeft }"
+        @click="flipLeft"
+        title="Flip left"
+      />
+      <div class="page-num">
+        <span>
+          Page
+          <input
+            :style="{ fontSize: '15px' }"
+            ref="input"
+            type="number"
+            :value="page"
+            :min="1"
+            :max="pages.length - 1"
+            @keypress.enter="(event) => onGoToPage(event.target.value)"
+          />
+          of {{ numPages }}
+        </span>
+      </div>
+
+      <right-icon
+        class="btn right"
+        :class="{ disabled: !canFlipRight }"
+        @click="flipRight"
+        title="Flip right"
+      />
+      <page-last-icon
+        class="btn page-last"
+        :class="{ disabled: !canFlipRight }"
+        @click="onGoToLastPage"
+        title="Go to last page"
+      />
+    </div>
   </div>
 </template>
 
@@ -176,7 +223,10 @@ import LeftIcon from "vue-material-design-icons/ChevronLeft";
 import RightIcon from "vue-material-design-icons/ChevronRight";
 import PageFirstIcon from "vue-material-design-icons/PageFirst";
 import PageLastIcon from "vue-material-design-icons/PageLast";
-import BookmarkPlusIcon from "vue-material-design-icons/BookmarkPlusOutline";
+import StarPlusIcon from "vue-material-design-icons/StarPlusOutline";
+import StarCheckIcon from "vue-material-design-icons/StarCheckOutline";
+import PrinterIcon from "vue-material-design-icons/PrinterOutline";
+import ShareVariantIcon from "vue-material-design-icons/ShareVariant";
 
 var IE, easeIn, easeInOut, easeOut;
 import Matrix from "./matrix";
@@ -206,9 +256,18 @@ export default {
     RightIcon,
     PageFirstIcon,
     PageLastIcon,
-    BookmarkPlusIcon,
+    StarPlusIcon,
+    StarCheckIcon,
+    PrinterIcon,
+    ShareVariantIcon,
   },
   props: {
+    selectedPages: {
+      type: Array,
+      default: function () {
+        return [];
+      },
+    },
     pages: {
       type: Array,
       required: true,
@@ -592,7 +651,7 @@ export default {
     fixFirstPage: function () {
       if (
         this.displayedPages === 1 &&
-        this.currentPage === 0 &&
+        parseInt(this.currentPage) === 0 &&
         this.pages.length &&
         !this.pageUrl(0)
       ) {
@@ -1292,10 +1351,30 @@ export default {
     addImageToPrint: function (page) {
       this.$emit("add-image-to-print", page);
     },
+    copyUrl: async function () {
+      var text = window.location.href;
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("URL copied to clipboard");
+      } catch (error) {
+        alert("Failed to copy URL");
+      }
+    },
+    shareFacebook: function () {
+      var url = window.location.href;
+      window.open(
+        "https://www.facebook.com/sharer/sharer.php?u=" + url,
+        "facebook-share-dialog",
+        "width=626,height=436"
+      );
+    },
+    viewImagesToPrint: function () {
+      this.$emit("view-images-to-print");
+    },
   },
   watch: {
     currentPage: function () {
-      if (this.currentPage % 2 === 0) {
+      if (this.currentPage % 2 === 0 || this.displayedPages !== 2) {
         this.firstPage = this.currentPage;
         this.secondPage = this.currentPage + 1;
       } else {
@@ -1429,8 +1508,7 @@ export default {
   height: 100%;
 }
 
-.action-bar-top,
-.action-bar-bottom {
+.action-bar {
   width: 100%;
   height: 30px;
   padding: 10px 0;
@@ -1439,26 +1517,50 @@ export default {
   align-items: center;
 }
 
-.action-bar-top .btn:not(:first-child) {
+.action-bar .btn:not(:first-child) {
   margin-left: 10px;
 }
 
-.action-bar-top .page-num {
+.action-bar .page-num {
   font-size: 15px;
   margin-left: 10px;
 }
 
-.action-bar-top .page-num input {
+.action-bar .page-num input {
   width: 40px;
   text-align: center;
 }
 
 .add-left-image-to-print {
   position: absolute;
-  left: -50px;
+  left: -65px;
 }
 .add-right-image-to-print {
   position: absolute;
-  right: -50px;
+  right: -65px;
+}
+
+.btn-print-images {
+  position: absolute;
+  right: -65px;
+  top: 60px;
+}
+
+.btn-copy-link {
+  position: absolute;
+  right: -65px;
+  top: 120px;
+}
+
+.btn-share-facebook {
+  position: absolute;
+  right: -65px;
+  top: 180px;
+}
+
+.btn-share-zalo {
+  position: absolute;
+  right: -65px;
+  top: 240px;
 }
 </style>
